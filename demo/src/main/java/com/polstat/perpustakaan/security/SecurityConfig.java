@@ -20,21 +20,19 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final AuthEntryPoint authEntryPoint;
 
-    // FIX: Gunakan Constructor Injection
+    // Gunakan Constructor Injection
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtFilter jwtFilter, AuthEntryPoint authEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
         this.authEntryPoint = authEntryPoint;
     }
 
-    // KOREKSI DARURAT: Menggunakan NoOpPasswordEncoder (PLAINTEXT)
-    // Warning deprecation di sini diabaikan untuk skenario praktikum.
+    // Menggunakan NoOpPasswordEncoder (PLAINTEXT) untuk praktikum
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
-    // Mendefinisikan DaoAuthenticationProvider secara eksplisit
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -56,9 +54,14 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // MODIFIKASI: Tambahkan /docs/** agar Swagger UI/OpenAPI dapat diakses tanpa JWT
-                        .requestMatchers("/auth/**", "/docs/**").permitAll()
+                        // Pengecualian Autentikasi dan GraphQL
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/graphql", "/graphiql").permitAll()
+
+                        // FIX FINAL KRITIS: Tambahkan semua jalur Swagger/OpenAPI
+                        // Ini mencakup jalur custom (/docs/**) dan jalur default Springdoc (v3, swagger-ui, webjars)
+                        .requestMatchers("/docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

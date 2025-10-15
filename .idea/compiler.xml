@@ -7,6 +7,7 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="perpustakaan" />
       </profile>
       <profile name="Annotation profile for perpustakaan" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -15,7 +16,6 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
         </processorPath>
-        <module name="perpustakaan" />
         <module name="demo" />
       </profile>
     </annotationProcessing>
