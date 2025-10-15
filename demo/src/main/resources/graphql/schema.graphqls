@@ -1,0 +1,34 @@
+type Member {
+    id: ID
+    memberID: String
+    name: String
+    address: String
+    phoneNumber: String
+    email: String
+}
+
+type Query {
+    members: [Member]
+    memberById(id: ID!): Member
+}
+
+type Mutation {
+    createMember(
+        memberID: String!,
+        name: String!,
+        address: String,
+        phoneNumber: String,
+        email: String
+    ): Member
+
+    updateMember(
+        id: ID!,
+        memberID: String!,
+        name: String!,
+        address: String,
+        phoneNumber: String,
+        email: String
+    ): Member
+
+    deleteMember(id: ID!): Member
+}
