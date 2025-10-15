@@ -3,41 +3,38 @@ package com.polstat.perpustakaan.auth;
 import com.polstat.perpustakaan.entity.User;
 import com.polstat.perpustakaan.repository.UserRepository;
 import com.polstat.perpustakaan.security.JwtService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus; // <-- PASTIKAN INI ADA
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException; // <-- PASTIKAN INI ADA untuk menangani error
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*; // <-- PASTIKAN INI ADA UNTUK RESTCONTROLLER, MAPPING, DLL.
+import org.springframework.web.bind.annotation.*;
 
-// IMPORTS SPRINGDOC (PASTIKAN SEMUA INI ADA)
+// IMPORTS SPRINGDOC (Pastikan semua ini ada)
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.parameters.RequestBody; // <-- PASTIKAN INI ADA
+import io.swagger.v3.oas.annotations.parameters.RequestBody; // Catatan: Anotasi @RequestBody dari Springdoc
 
-@RestController // <-- Pastikan ini ada
-@RequestMapping("/auth") // <-- Pastikan ini ada
+@RestController
+@RequestMapping("/auth")
 @Tag(name = "Authentication", description = "Endpoints untuk Registrasi dan Login Pengguna")
 public class AuthController {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    // Catatan: field PasswordEncoder telah dihapus karena tidak digunakan secara langsung di kelas ini
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private JwtService jwtService;
+    // FIX: Constructor Injection untuk menghilangkan warning "Field injection is not recommended"
+    public AuthController(UserRepository userRepository, AuthenticationManager authenticationManager, JwtService jwtService) {
+        this.userRepository = userRepository;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+    }
 
     // REGISTER
     @Operation(summary = "Mendaftarkan pengguna baru.")
@@ -65,7 +62,7 @@ public class AuthController {
 
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword());
+        user.setPassword(request.getPassword()); // Simpan password (plaintext karena NoOpPasswordEncoder)
         userRepository.save(user);
 
         return ResponseEntity.ok(
@@ -99,6 +96,7 @@ public class AuthController {
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new RuntimeException("User tidak ditemukan!"));
 
+            // Membuat UserDetails dari entity User
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                     .username(user.getEmail())
                     .password(user.getPassword())
@@ -116,7 +114,7 @@ public class AuthController {
             );
 
         } catch (Exception e) {
-            // FIX: Menggunakan HttpStatus.UNAUTHORIZED untuk 401
+            // FIX: Menggunakan HttpStatus.UNAUTHORIZED untuk status 401
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(AuthResponse.builder()
                             .message("Email atau password salah. Coba lagi!")

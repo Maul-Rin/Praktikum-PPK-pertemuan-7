@@ -2,7 +2,6 @@ package com.polstat.perpustakaan.auth;
 
 import com.polstat.perpustakaan.entity.User;
 import com.polstat.perpustakaan.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,8 +10,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    @Autowired
-    private UserRepository userRepository;
+    // private UserRepository userRepository; <-- Hapus
+    private final UserRepository userRepository; // <-- Jadikan final
+
+    // Ganti @Autowired dengan Constructor Injection
+    public CustomUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

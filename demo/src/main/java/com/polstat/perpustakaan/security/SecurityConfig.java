@@ -20,6 +20,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final AuthEntryPoint authEntryPoint;
 
+    // FIX: Gunakan Constructor Injection
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtFilter jwtFilter, AuthEntryPoint authEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
@@ -27,6 +28,7 @@ public class SecurityConfig {
     }
 
     // KOREKSI DARURAT: Menggunakan NoOpPasswordEncoder (PLAINTEXT)
+    // Warning deprecation di sini diabaikan untuk skenario praktikum.
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
