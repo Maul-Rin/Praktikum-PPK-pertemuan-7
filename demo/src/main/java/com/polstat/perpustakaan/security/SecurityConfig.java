@@ -20,14 +20,16 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final AuthEntryPoint authEntryPoint;
 
-    // Gunakan Constructor Injection
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtFilter jwtFilter, AuthEntryPoint authEntryPoint) {
+    // Constructor Injection
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          JwtFilter jwtFilter,
+                          AuthEntryPoint authEntryPoint) {
         this.userDetailsService = userDetailsService;
         this.jwtFilter = jwtFilter;
         this.authEntryPoint = authEntryPoint;
     }
 
-    // Menggunakan NoOpPasswordEncoder (PLAINTEXT) untuk praktikum
+    // Password Encoder (PLAINTEXT untuk praktikum)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
@@ -54,14 +56,20 @@ public class SecurityConfig {
                         .authenticationEntryPoint(authEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Pengecualian Autentikasi dan GraphQL
-                        .requestMatchers("/auth/**").permitAll()
+                        // Authentication Endpoints - FIXED: /auth/** -> /api/auth/**
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // GraphQL Endpoints
                         .requestMatchers("/graphql", "/graphiql").permitAll()
 
-                        // FIX FINAL KRITIS: Tambahkan semua jalur Swagger/OpenAPI
-                        // Ini mencakup jalur custom (/docs/**) dan jalur default Springdoc (v3, swagger-ui, webjars)
-                        .requestMatchers("/docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll()
+                        // Swagger UI & OpenAPI Documentation
+                        .requestMatchers("/docs/**").permitAll()                // Custom Swagger UI path
+                        .requestMatchers("/v3/api-docs/**").permitAll()         // OpenAPI JSON
+                        .requestMatchers("/swagger-ui/**").permitAll()          // Swagger UI resources
+                        .requestMatchers("/swagger-ui.html").permitAll()        // Swagger UI HTML
+                        .requestMatchers("/webjars/**").permitAll()             // Swagger UI dependencies
 
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -69,6 +77,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
+        // Add JWT Filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
